@@ -1,0 +1,22 @@
+---
+- name: Update APT Packagelist
+  apt:
+    upgrade: yes
+    cache_valid_time: 86400 #One day
+- name: Install packages
+  apt: name={{item}}
+  with_items:
+    - htop
+    - mc
+    - tmux
+    - neovim
+    - zsh
+    - alacritty
+    - sway
+- name: set NOPASSWD Login
+  copy:
+    src: "passwordless"
+    dest: "/etc/sudoers.d/passwordless"
+    owner: "root"
+    group: "root"
+    validate: "/usr/sbin/visudo -csf %s"
