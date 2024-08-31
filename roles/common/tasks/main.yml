@@ -3,6 +3,9 @@
   apt:
     upgrade: yes
     cache_valid_time: 86400 #One day
+- apt_repository:
+    repo: deb https://repo.vivaldi.com/archive/deb/ stable main
+    state: present
 - name: Install packages
   apt: name={{item}}
   with_items:
@@ -13,6 +16,7 @@
     - zsh
     - alacritty
     - sway
+    - vivaldi-stable
 - name: set NOPASSWD Login
   copy:
     src: "passwordless"
