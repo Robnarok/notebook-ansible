@@ -3,20 +3,50 @@
   apt:
     upgrade: yes
     cache_valid_time: 86400 #One day
-- apt_repository:
-    repo: deb https://repo.vivaldi.com/archive/deb/ stable main
-    state: present
+
+- name: Add Vivaldi Repositories
+  block:
+    - name: Vivaldi apt key
+      ansible.builtin.get_url:
+        url: https://repo.vivaldi.com/archive/linux_signing_key.pub
+        dest: /usr/share/keyrings/vivaldi-browser.asc
+          #checksum: sha256:bb42f0db45d46bab5f9ec619e1a47360b94c27142e57aa71f7050d08672309e0
+    - name: Vivaldi Repo
+      ansible.builtin.apt_repository:
+        repo: 'deb [signed-by=/usr/share/keyrings/vivaldi-browser.asc arch=amd64] https://repo.vivaldi.com/archive/deb/ stable main'
+        state: present
+
+- name: Add Kubernetes Repos + Keys
+  block:
+    - name: Kubernetes apt key
+      ansible.builtin.get_url:
+        url: https://pkgs.k8s.io/core:/stable:/v1.31/deb/Release.key
+        dest: /usr/share/keyrings/kubernetes.asc
+          #checksum: sha256:bb42f0db45d46bab5f9ec619e1a47360b94c27142e57aa71f7050d08672309e0
+    - name: Kubernetes Repo
+      ansible.builtin.apt_repository:
+        repo: 'deb [signed-by=/usr/share/keyrings/kubernetes.asc] https://pkgs.k8s.io/core:/stable:/v1.31/deb/ /'
+        state: present
+
 - name: Install packages
   apt: name={{item}}
   with_items:
     - htop
     - mc
     - tmux
+    - curl
     - neovim
     - zsh
     - alacritty
-    - sway
     - vivaldi-stable
+    - sway
+    - tofi
+    - kubectl
+    - ripgrep
+    - fd-find
+    - build-essential
+    - luarocks
+
 - name: set NOPASSWD Login
   copy:
     src: "passwordless"
@@ -24,3 +54,31 @@
     owner: "root"
     group: "root"
     validate: "/usr/sbin/visudo -csf %s"
+
+
+- name: Add Vivaldi Repositories
+  block:
+  - name: Add Docker GPG apt Key
+    apt_key:
+      url: https://download.docker.com/linux/debian/gpg
+      state: present
+        #dest: /usr/share/keyrings/docker.gpg
+
+  - name: Add Docker Repository
+    apt_repository:
+      repo: " deb [arch=amd64] https://download.docker.com/linux/{{ ansible_facts['distribution']  | lower }} {{ ansible_facts['distribution_release'] | lower }} stable"
+      state: present
+
+
+- name: Update apt and install docker-ce
+  apt:
+    name: docker-ce
+    state: latest
+    update_cache: true
+    cache_valid_time: 86400000
+
+- name: adding robin to group docker
+  user:
+    name: robin
+    groups: docker
+    append: yes
